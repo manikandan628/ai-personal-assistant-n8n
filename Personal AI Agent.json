@@ -1,0 +1,1107 @@
+{
+  "name": "Personal AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "692b6f93-4e48-45c7-a409-cca4151e9f0b",
+      "name": "Telegram Trigger",
+      "webhookId": "8bd94738-fa96-4c9b-a8cd-13a8bd67262d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qo6lvAWneePcRLQe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb2a9d17-eafe-4ffa-bb36-125f5c3daaf2",
+              "name": "Text",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        96
+      ],
+      "id": "413c7b2d-51c3-4339-be50-58794c0594c9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        -128
+      ],
+      "id": "24d3eb35-b4c2-42f0-b9f7-0813723dd88f",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pb6eHxd090FMqbrb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        -128
+      ],
+      "id": "91efcff0-f177-44e1-ab38-9b588d5dfbc8",
+      "name": "Get a file",
+      "webhookId": "a6d7b3af-e594-48fc-ab28-30c7a0372b72",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qo6lvAWneePcRLQe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        240,
+        384
+      ],
+      "id": "189eaf3a-7e32-48fa-aa40-21c1140c8891",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "JXWMoUjUHBpcy6nx",
+          "name": "Sales Key GRoq"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        384
+      ],
+      "id": "70cddbd9-15d9-48cc-a547-e17019ee44b6",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        400
+      ],
+      "id": "d9a7d542-ecc6-45c3-8136-31951caa8ac7",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This is act a Contact agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a contact manager. You have tools to take action within the contact database.\n\n##Tools\nGet Contact - Use this to get contact information like email address or phone number.\nAdd or Update Contact - Use this to add a new contact to the database or update an existing contact"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        976,
+        240
+      ],
+      "id": "c300f8d7-b39a-4013-8c10-3ad9ad94fb61",
+      "name": "ContactAgent"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        16
+      ],
+      "id": "292bd57a-351e-459a-984c-0fa4d7e48de2",
+      "name": "Send a text message",
+      "webhookId": "afade07a-4bda-44e9-b9a5-7f453d6f05b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "Qo6lvAWneePcRLQe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        800,
+        432
+      ],
+      "id": "319bd869-2455-411e-8d4c-d7d92769ba0f",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "JXWMoUjUHBpcy6nx",
+          "name": "Sales Key GRoq"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool for an email agent",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a email assistant. You have tools to take action in email.\n\n##Tools\nSend Email - Use this to send an email\nGet Emails - Use this to get emails. You must use this before creating an email reply\nEmail Reply - Use this to reply to emails\nCreate Draft - Use this to create a draft\nGet Labels - Use this to get labels.\nLabel Emails - Use this to label emails. Before you label them, you must use Get Labels in order to get the label ID and you must use Get Emails to get the message ID\n\n#RULES\n- Please write the emails in HTML format\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "e52b5aed-f797-447a-86bd-7ceea6a1fe10",
+      "name": "EmailAgent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        416
+      ],
+      "id": "99a08f97-59de-402f-b930-dbbf6b9b75b9",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "JXWMoUjUHBpcy6nx",
+          "name": "Sales Key GRoq"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU",
+          "mode": "list",
+          "cachedResultName": "n8n contacts details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        448
+      ],
+      "id": "b4b32ca7-d7fd-4bcd-8529-f8ab8400c206",
+      "name": "Get Contact",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YstWpHs72lveMyIJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU",
+          "mode": "list",
+          "cachedResultName": "n8n contacts details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BFeRKMSGhqqKvPS0Z_Apck2-n0_3hg6ZldxnxQBwMwU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name', `This is the name of the person`, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', `this is the email id of the person`, 'string') }}",
+            "Mobile number ": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Mobile_number_', `this is the mobile number of the person `, 'string') }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mobile number ",
+              "displayName": "Mobile number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1104,
+        448
+      ],
+      "id": "ad4306be-fc07-4d92-bcb0-e55e1a166e59",
+      "name": "Add or Update Contact",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YstWpHs72lveMyIJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        432
+      ],
+      "id": "f2327c7e-baaf-421d-941e-4f3b2e21823d",
+      "name": "Send Email",
+      "webhookId": "4bddfbc7-fd49-4ed4-98ac-d4dcd122becf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "simple": false,
+        "filters": {
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', `this can be a sender mail or sender address`, 'string') }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        448
+      ],
+      "id": "fc6a5342-4943-4a4e-935d-93130918e2ac",
+      "name": "Get email",
+      "webhookId": "c376c620-60a3-4e29-b485-48753c0b5c19",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1824,
+        448
+      ],
+      "id": "90c485cd-7944-47b8-bc41-44b0cb222bbe",
+      "name": "Email reply",
+      "webhookId": "b8376be0-b4c6-41a0-a4f0-01d7552455c4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "html",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To_Email', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        608
+      ],
+      "id": "b8185566-fdcb-4df7-984a-1eb8efbcf027",
+      "name": "Create draft",
+      "webhookId": "c4fdf5ae-f9d5-4c05-bfa1-e863b088b2f4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        592
+      ],
+      "id": "3c893aa4-64a7-4b03-aeba-876662978411",
+      "name": "Get labels",
+      "webhookId": "dd7b4b71-4118-4aeb-8494-71a9781d9cf2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1824,
+        592
+      ],
+      "id": "1d3f695c-866a-40af-8fe1-709924f1d28f",
+      "name": "label Emails",
+      "webhookId": "8834a198-1e4f-4e25-a901-eb7c47aa648a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CjPVsvlB5BGPDp4F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this agent for actions in calender ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a calendar assistant. You have tools to take action in calendar.\n\n##Tools\nCreate Event - Use this to create an event when there will not be an attendee\nCreate Event with Attendee - Use this to create an event when there will be an attendee\nGet Events - Use this to get events. You must use this before updating or deleting events\nDelete Events - Use this to delete events\nUpdate Events - Use this to update events\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1952,
+        224
+      ],
+      "id": "2d408f8f-ea92-4bf5-9dac-cf4cac117a1e",
+      "name": "Calender agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        416
+      ],
+      "id": "420936f4-7b82-4367-be71-2e0becd19b43",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "JXWMoUjUHBpcy6nx",
+          "name": "Sales Key GRoq"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "f1a2f7b15e8a806e89be70d5b10227a8b7f3e7e369172a252edd2ea3243edf8c@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `this is the email address of the attendee`, 'string') }}"
+          ],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        480
+      ],
+      "id": "6037ff9b-256d-4476-9312-a49c3116b618",
+      "name": "Create Event with attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "6nxryvslinFBzzUh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "f1a2f7b15e8a806e89be70d5b10227a8b7f3e7e369172a252edd2ea3243edf8c@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2384,
+        464
+      ],
+      "id": "19812ffc-c7c2-4da0-abe5-16dca449b173",
+      "name": "Create Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "6nxryvslinFBzzUh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "f1a2f7b15e8a806e89be70d5b10227a8b7f3e7e369172a252edd2ea3243edf8c@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        464
+      ],
+      "id": "722e0109-854e-4f19-836b-905ced5a3d4a",
+      "name": "Get Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "6nxryvslinFBzzUh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "f1a2f7b15e8a806e89be70d5b10227a8b7f3e7e369172a252edd2ea3243edf8c@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2048,
+        656
+      ],
+      "id": "86fbac19-e892-4df8-b848-4610049537cb",
+      "name": "Delete Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "6nxryvslinFBzzUh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "f1a2f7b15e8a806e89be70d5b10227a8b7f3e7e369172a252edd2ea3243edf8c@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2288,
+        656
+      ],
+      "id": "1880defc-82dc-4c55-be44-637333f5cd4a",
+      "name": "Update Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "6nxryvslinFBzzUh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "call this tool for an content creation \n",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are an expert blog writer. Use the appropriate tool to write a blog post\n\n##Tool\nResearch_gemini - Use this to search the internet before writing your blog\n\n##RULES\n- Your blog post should be less than 500 words\n- Output the whole blog text\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2416,
+        192
+      ],
+      "id": "a0d658d5-9e12-4769-b25a-78748bfa83f1",
+      "name": "Content creation agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2576,
+        432
+      ],
+      "id": "631efd51-5f3e-474e-96e6-8c4b6c42d313",
+      "name": "Groq Chat Model4",
+      "credentials": {
+        "groqApi": {
+          "id": "JXWMoUjUHBpcy6nx",
+          "name": "Sales Key GRoq"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Prompt', ``, 'string') }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Maximum_Number_of_Tokens', ``, 'number') }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGeminiTool",
+      "typeVersion": 1.1,
+      "position": [
+        2800,
+        416
+      ],
+      "id": "467aef8b-5155-4af7-9235-527463249cb3",
+      "name": "research_gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pb6eHxd090FMqbrb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are the ultimate personal assistant. Your job is to send the user's query to the correct tool.\n\n##Tools\nContactAgent - Use this tool to take contact actions. You must use this before sending emails or creating calendar events with attendees.\nEmailAgent - Use this tool to take action in email\nCalendar Agent - Use this tool to take action in calendar. You must use the contact agent before using the calendar agent and make sure you pass through the email of the contact to the calendar agent\nContent Agent - Use this tool to generate a blog and return the full text\n\n## Rules\n- Some actions require you to look up contact information first. For the following actions, you must get contact information and send that to the agent who needs it:\n  - sending emails\n  - drafting emails\n  - creating calendar event with attendee\n- When asked to write a blog, you have to return the whole blog text to the end user\n\n## Instructions\n1) Call the necessary tools based on the user's request\n2) Use the **Think** tool to verify you took the right steps. This tool should be called every time.\n\n###Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        16
+      ],
+      "id": "e133e779-cc9b-4815-8455-87c1985af5d7",
+      "name": "AI Ultimate agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ContactAgent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ContactAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EmailAgent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "ContactAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add or Update Contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "ContactAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get email": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email reply": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get labels": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "label Emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "EmailAgent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calender agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calender agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content creation agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content creation agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "research_gemini": {
+      "ai_tool": [
+        [
+          {
+            "node": "Content creation agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Ultimate agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4573c6a3-a5ca-424e-b69f-0714aad9eac1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac2406538c88a727e254dc002e990511763b670d5134496b5057a42736a95036"
+  },
+  "id": "VRe94ovTMGFfBIJQ",
+  "tags": []
+}
